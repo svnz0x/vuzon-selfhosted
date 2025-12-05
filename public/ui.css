@@ -1,3 +1,5 @@
+/* public/ui.css */
+
 /* --- Base / Reset ---------------------------------------------------- */
 [x-cloak] { display: none !important; }
 
@@ -180,7 +182,17 @@ body.login-page .cf-turnstile > div {
   gap: 12px;
 }
 .titlebar h1 { display: inline-flex; align-items: center; gap: var(--space-4); }
-.titlebar .logo { width: 44px; height: 44px; display: block; border-radius: 12px; }
+
+/* MODIFICADO: Ajuste del logo */
+.titlebar .logo { 
+  width: 40px; 
+  height: 40px; 
+  display: inline-block; 
+  vertical-align: middle;
+  margin-right: 8px;
+  border-radius: 12px; 
+}
+
 .titlebar .title-text { align-self: center; }
 .titlebar-actions {
   display: flex;
@@ -444,7 +456,16 @@ body.login-page .cf-turnstile > div {
 h1 { color: var(--ink-strong); font-size: clamp(1.2rem, 1.2rem + .6vw, 2.1rem); margin: 0; letter-spacing: -0.01em; line-height: 1.1; text-shadow: 0 1px 0 rgba(255,255,255,.7); }
 @media (prefers-color-scheme: dark) { h1 { text-shadow: none; } }
 
-.title-text { display: inline-grid; gap: 2px; font-size: clamp(.72rem, .72rem + .18vw, 1rem); font-weight: 600; justify-items: start; }
+/* MODIFICADO: Título más grande */
+.title-text { 
+  display: inline-block; 
+  font-size: clamp(1.2rem, 1.2rem + .6vw, 1.8rem); 
+  font-weight: 700; 
+  color: var(--ink-strong);
+  line-height: 1.1;
+  vertical-align: middle;
+}
+
 .user-label { color: var(--ink-strong); font-weight: 600; font-size: .95em; }
 .subdomain-label { color: var(--ink-muted); font-size: .85em; letter-spacing: .01em; }
 
@@ -782,6 +803,7 @@ button.alias-info-trigger:focus-visible {
 }
 /* Forms */
 label { font-weight: 600; font-size: .92rem; color: var(--ink-strong); }
+/* MODIFICADO: Font size 16px para inputs */
 input, select, button, .btn { width: auto; min-height: var(--control-min-height); font-size: 16px; padding: var(--control-padding-block) var(--control-padding-inline); border-radius: 12px; border: 1px solid #e2e8f0; background: #ffffff; color: var(--ink); transition: border .2s ease, box-shadow .2s ease, transform .15s ease; }
 input::placeholder { color: #6b7280; opacity: 1; }
 select option { color: var(--ink); }
@@ -938,8 +960,9 @@ button.sm.icon-only, .btn.sm.icon-only {
 .dest-section {
   position: relative;
 }
+/* MODIFICADO: Layout bloque para destinatarios */
 .dest-section__container {
-  display: grid;
+  display: block;
   gap: var(--space-3);
   padding-block: 0;
   padding-inline: 0;
@@ -955,9 +978,9 @@ button.sm.icon-only, .btn.sm.icon-only {
   flex: 1 1 auto;
   min-width: 0;
 }
+/* MODIFICADO: Layout bloque para contenido destinatarios */
 .dest-section__content {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: block;
   gap: var(--space-4);
   align-items: start;
 }
@@ -999,7 +1022,8 @@ button.icon-only .spinner {
   margin: 0;
   flex: 0 0 auto;
 }
-.compact-input, .compact-btn { min-height: 38px; padding: 8px 12px; font-size: 15px; border-radius: 10px; }
+/* MODIFICADO: Font size 16px */
+.compact-input, .compact-btn { min-height: 38px; padding: 8px 12px; font-size: 16px; border-radius: 10px; }
 .compact-btn { padding-inline: 14px; font-size: 15px; }
 .table-actions .compact-input { flex: 1 1 160px; min-width: 140px; }
 .btns { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; }
