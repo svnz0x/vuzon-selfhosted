@@ -18,12 +18,14 @@ const AUTH_USER = process.env.AUTH_USER;
 const AUTH_PASS = process.env.AUTH_PASS;
 const DOMAIN = process.env.DOMAIN;
 
-// --- MEJORA: Detección automática de HTTPS ---
-// Se asume seguro si BASE_URL empieza por https:// o si NODE_ENV es production
-const isHttps = process.env.BASE_URL?.startsWith('https') || process.env.NODE_ENV === 'production';
+// --- MEJORA: Detección más flexible de HTTPS/Producción ---
+// isHttps: solo verdadero si la URL explícitamente empieza por https
+const isHttps = process.env.BASE_URL?.startsWith('https');
+// isProduction: solo verdadero si el entorno está marcado como producción
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Confiar en el proxy si estamos en modo seguro (necesario para cookies seguras tras proxy/docker)
-if (isHttps) {
+// Confiar en el proxy si estamos en https o en producción (necesario para cookies tras proxy/docker)
+if (isHttps || isProduction) {
   app.set('trust proxy', 1);
 }
 
@@ -63,7 +65,10 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 días
     httpOnly: true,
     sameSite: 'lax', 
-    secure: isHttps // Automático basado en la detección anterior
+    // CORRECCIÓN PRINCIPAL:
+    // Solo requerir cookie 'Secure' si la URL es https O si estamos forzando producción.
+    // Esto permite que funcione en http://IP_LOCAL sin problemas.
+    secure: isHttps || isProduction 
   }
 }));
 
@@ -102,7 +107,6 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
-// --- CORRECCIÓN IMPORTANTE AQUÍ ---
 // { index: false } evita que sirva index.html automáticamente en la raíz '/'.
 // Así obligamos a que la petición '/' caiga en el manejador de abajo con requireAuth.
 app.use(express.static('public', { index: false }));
@@ -259,7 +263,7 @@ async function autoConfigure() {
 autoConfigure().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🔒 Modo Seguro (HTTPS/Proxy): ${isHttps ? 'ACTIVADO' : 'DESACTIVADO'}`);
+    console.log(`🔒 Modo Seguro (HTTPS): ${isHttps ? 'SI' : 'NO'} | Producción: ${isProduction ? 'SI' : 'NO'}`);
     console.log(`👤 Auth User: ${AUTH_USER}`);
   });
 });
