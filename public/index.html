@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>vuzon</title>
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<main>
+<header class="titlebar">
+  <h1>
+    <img src="/icons/icon-192.png" class="logo" alt="" width="44" height="44"> 
+    <span class="title-text">
+      <span id="subdomain" class="subdomain-label">—</span>
+    </span>
+  </h1>
+  <div class="titlebar-actions">
+    <button id="refresh" type="button" class="titlebar-button refresh-button" aria-label="Actualizar panel">
+      <svg class="refresh-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.023 9.348h4.992V4.356m0 0L18.2 7.17a8.25 8.25 0 0 0-14.547 4.167M7.977 14.652H2.985v4.992m0 0 2.815-2.814a8.25 8.25 0 0 0 14.546-4.167"/></svg>
+    </button>
+  </div>
+</header>
+
+<section id="subdomainStatusRegion" class="subdomain-status" hidden>
+  <div id="subdomainStatus" class="status-card" hidden></div>
+</section>
+
+<form id="aliasForm">
+<section aria-label="Crear alias">
+  <div class="alias-form">
+    <div class="alias-form__split">
+      <div class="alias-form__column alias-form__column--inputs">
+        <div class="alias-form__row alias-form__row--local">
+          <div class="alias-form__field alias-form__field--local">
+            <div class="alias-field-label">
+              <label for="localPart">Alias</label>
+            </div>
+            <input id="localPart" class="compact-input" placeholder="alias" autocapitalize="off" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="alias-form__action alias-form__action--gen">
+            <button id="gen" class="secondary compact-btn" type="button">Generar</button>
+          </div>
+        </div>
+        <div class="alias-form__field alias-form__field--dest">
+          <div class="alias-field-label">
+            <label for="destSel">Enviar a</label>
+          </div>
+          <select id="destSel" class="compact-input" aria-label="Selecciona destinatario"></select>
+        </div>
+      </div>
+      <div class="alias-form__footer">
+        <button id="create" class="compact-btn" type="submit">Crear alias</button>
+        <p id="createHelper" class="alias-helper alias-form__helper" hidden>Añade y verifica un destinatario para habilitar este botón.</p>
+      </div>
+      <div class="alias-form__divider" aria-hidden="true"></div>
+      <div class="alias-form__column alias-form__column--preview">
+        <div class="alias-preview" aria-live="polite">
+          <button id="aliasPreviewCopy" class="alias-preview__button" type="button" disabled>
+            <span id="aliasPreview" class="alias-preview__value">alias@—</span>
+          </button>
+          <p id="aliasPreviewHint" class="alias-preview__hint" hidden>Pulsa para copiar.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</form>
+<p id="aliasError" class="form-error" aria-live="polite" hidden></p>
+
+<section class="dest-section">
+  <div class="dest-section__container">
+    <header class="dest-section__header">
+      <h2 id="destSectionTitle">Destinatarios</h2>
+    </header>
+    <div class="dest-section__content">
+      <div class="dest-section__column dest-section__column--form">
+        <form id="newDestForm" class="dest-section__form">
+          <div class="dest-section__form-fields">
+            <input required type="email" id="newDest" class="compact-input" placeholder="destino@ejemplo.com" autocomplete="email">
+            <button id="addDest" class="compact-btn dest-section__cta" type="submit"><span class="btn-text">Añadir</span></button>
+          </div>
+        </form>
+        <p id="newDestError" class="form-error" aria-live="polite" hidden></p>
+      </div>
+      <div class="dest-section__column dest-section__column--list">
+        <ul id="destList" class="dest-card-list" aria-live="polite"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <header class="section-actions">
+    <h2 class="mr-auto">Alias existentes</h2>
+    <div class="table-actions ml-auto">
+      <input id="aliasSearch" class="compact-input alias-search" type="search" placeholder="Buscar alias">
+    </div>
+  </header>
+  <div id="rulesList" class="rule-card-list" aria-live="polite"></div>
+</section>
+
+<div id="status" role="status" aria-live="polite" class="status-toast"></div>
+</main>
+<script type="module" src="/app.js"></script>
+</body>
+</html>
