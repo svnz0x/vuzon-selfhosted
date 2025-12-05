@@ -31,11 +31,11 @@ document.addEventListener('alpine:init', () => {
     },
     get previewText() {
       const local = this.newAlias.local.trim().toLowerCase() || 'alias';
-      const domain = this.profile.rootDomain || '—';
+      const domain = this.profile?.rootDomain || '—';
       return `${local}@${domain}`;
     },
     get canCreateAlias() {
-      return this.newAlias.local.trim() && this.newAlias.dest && this.profile.rootDomain;
+      return this.newAlias.local.trim() && this.newAlias.dest && this.profile?.rootDomain;
     },
 
     // Inicialización
@@ -53,12 +53,12 @@ document.addEventListener('alpine:init', () => {
       
       const res = await fetch(path, opts);
 
-      // --- INICIO MEJORA: Redirección automática al login ---
+      // Redirección automática al login
       if (res.status === 401) {
         window.location.href = '/login.html';
-        return; // Detenemos la ejecución para no procesar el JSON
+        // CORRECCIÓN: Lanzamos error para detener la ejecución y que los .catch() funcionen
+        throw new Error('Sesión expirada, redirigiendo...');
       }
-      // --- FIN MEJORA ---
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || data.message || `Error ${res.status}`);
@@ -69,22 +69,25 @@ document.addEventListener('alpine:init', () => {
     async refreshAll() {
       this.loading = true;
       try {
+        // CORRECCIÓN: Si falla la autenticación, catch devuelve objetos seguros para no romper la UI
         const [meData, rulesData, destsData] = await Promise.all([
           this.api('/api/me').catch(() => ({})),
           this.api('/api/rules').catch(() => ({ result: [] })),
           this.api('/api/addresses').catch(() => ({ result: [] }))
         ]);
 
-        this.profile = meData;
-        this.rules = rulesData.result || [];
-        this.dests = destsData.result || [];
+        // Asignación segura
+        this.profile = meData || {};
+        this.rules = rulesData?.result || [];
+        this.dests = destsData?.result || [];
         
         // Auto-seleccionar primer destino si no hay uno
         if (!this.newAlias.dest && this.verifiedDests.length > 0) {
           this.newAlias.dest = this.verifiedDests[0].email;
         }
       } catch (err) {
-        this.setStatus(`Error cargando: ${err.message}`);
+        // Este catch captura errores generales, no los de auth que ya fueron manejados
+        console.error(err);
       } finally {
         this.loading = false;
       }
@@ -128,12 +131,12 @@ document.addEventListener('alpine:init', () => {
 
     async toggleRule(rule) {
       const originalState = rule.enabled;
-      rule.enabled = !originalState; // Optimista
+      rule.enabled = !originalState; 
       try {
         const action = !originalState ? 'enable' : 'disable';
         await this.api(`/api/rules/${rule.id}/${action}`, 'POST');
       } catch (err) {
-        rule.enabled = originalState; // Revertir
+        rule.enabled = originalState; 
         this.setStatus(`Error: ${err.message}`);
       }
     },
