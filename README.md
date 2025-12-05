@@ -104,6 +104,8 @@ services:
     restart: unless-stopped
     ports:
       - "${VUZON_PORT:-8001}:8001"
+    volumes:
+      - ./sessions:/app/sessions
 ```
 
 
