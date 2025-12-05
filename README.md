@@ -29,7 +29,11 @@
   &nbsp;
   <img src="https://img.shields.io/badge/backend-Node.js%20%2B%20Express-339933?logo=nodedotjs&logoColor=white" alt="Node.js + Express"/>
   &nbsp;
-  <img src="https://img.shields.io/badge/infra-Docker%20%2B%20Docker%20Compose-2496ED?logo=docker&logoColor=white" alt="Docker + Docker Compose"/>
+  <img src="https://img.shields.io/badge/validation-Zod-3068B7?logo=zod&logoColor=white" alt="Zod"/>
+  &nbsp;
+  <img src="https://img.shields.io/badge/infra-Docker-2496ED?logo=docker&logoColor=white" alt="Docker"/>
+  &nbsp;
+  <img src="https://img.shields.io/badge/API-Cloudflare-F38020?logo=cloudflare&logoColor=white" alt="Cloudflare"/>
 </p>
 
 
