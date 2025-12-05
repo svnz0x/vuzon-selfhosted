@@ -6,86 +6,109 @@
 <title>vuzon</title>
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <link rel="stylesheet" href="/ui.css">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+<script type="module" src="/app.js"></script>
 </head>
-<body>
+<body x-data="vuzonApp" x-cloak>
 <main>
+  <div class="status-toast" :class="{ 'is-visible': statusMsg }" x-text="statusMsg" role="status"></div>
+
 <header class="titlebar">
   <h1>
     <img src="/icons/icon-192.png" class="logo" alt="" width="44" height="44"> 
     <span class="title-text">
-      <span id="subdomain" class="subdomain-label">—</span>
+      <span class="subdomain-label" x-text="profile.rootDomain || '—'"></span>
     </span>
   </h1>
   <div class="titlebar-actions">
-    <button id="refresh" type="button" class="titlebar-button refresh-button" aria-label="Actualizar panel">
-      <svg class="refresh-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.023 9.348h4.992V4.356m0 0L18.2 7.17a8.25 8.25 0 0 0-14.547 4.167M7.977 14.652H2.985v4.992m0 0 2.815-2.814a8.25 8.25 0 0 0 14.546-4.167"/></svg>
+    <button @click="refreshAll" type="button" class="titlebar-button refresh-button" :class="{ 'loading': loading }" aria-label="Actualizar">
+      <svg class="refresh-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.023 9.348h4.992V4.356m0 0L18.2 7.17a8.25 8.25 0 0 0-14.547 4.167M7.977 14.652H2.985v4.992m0 0 2.815-2.814a8.25 8.25 0 0 0 14.546-4.167"/></svg>
     </button>
   </div>
 </header>
 
-<section id="subdomainStatusRegion" class="subdomain-status" hidden>
-  <div id="subdomainStatus" class="status-card" hidden></div>
-</section>
-
-<form id="aliasForm">
 <section aria-label="Crear alias">
-  <div class="alias-form">
+  <form @submit.prevent="createAlias" class="alias-form">
     <div class="alias-form__split">
       <div class="alias-form__column alias-form__column--inputs">
         <div class="alias-form__row alias-form__row--local">
-          <div class="alias-form__field alias-form__field--local">
-            <div class="alias-field-label">
-              <label for="localPart">Alias</label>
-            </div>
-            <input id="localPart" class="compact-input" placeholder="alias" autocapitalize="off" autocomplete="off" spellcheck="false">
+          <div class="alias-form__field">
+            <label class="alias-field-label" for="localPart">Alias</label>
+            <input x-model="newAlias.local" @input="clearErrors" id="localPart" class="compact-input" placeholder="nombre.alias" autocapitalize="off" autocomplete="off" spellcheck="false">
           </div>
           <div class="alias-form__action alias-form__action--gen">
-            <button id="gen" class="secondary compact-btn" type="button">Generar</button>
+            <button @click="generateLocalPart" class="secondary compact-btn" type="button">Generar</button>
           </div>
         </div>
-        <div class="alias-form__field alias-form__field--dest">
-          <div class="alias-field-label">
-            <label for="destSel">Enviar a</label>
-          </div>
-          <select id="destSel" class="compact-input" aria-label="Selecciona destinatario"></select>
+        
+        <div class="alias-form__field">
+          <label class="alias-field-label" for="destSel">Enviar a</label>
+          <select x-model="newAlias.dest" @change="clearErrors" id="destSel" class="compact-input">
+            <option value="" disabled selected>Selecciona destino...</option>
+            <template x-for="dest in verifiedDests" :key="dest.email">
+              <option :value="dest.email" x-text="dest.email"></option>
+            </template>
+            <template x-if="dests.length > 0 && verifiedDests.length === 0">
+              <option disabled>Sin destinos verificados</option>
+            </template>
+          </select>
         </div>
       </div>
+
       <div class="alias-form__footer">
-        <button id="create" class="compact-btn" type="submit">Crear alias</button>
-        <p id="createHelper" class="alias-helper alias-form__helper" hidden>Añade y verifica un destinatario para habilitar este botón.</p>
+        <button class="compact-btn" type="submit" :disabled="!canCreateAlias || loading">Crear alias</button>
+        <p class="form-error" x-show="errors.alias" x-text="errors.alias"></p>
       </div>
+
       <div class="alias-form__divider" aria-hidden="true"></div>
+
       <div class="alias-form__column alias-form__column--preview">
-        <div class="alias-preview" aria-live="polite">
-          <button id="aliasPreviewCopy" class="alias-preview__button" type="button" disabled>
-            <span id="aliasPreview" class="alias-preview__value">alias@—</span>
+        <div class="alias-preview">
+          <button type="button" class="alias-preview__button" :class="{ 'is-copied': copied }" :disabled="!profile.rootDomain" @click="copyPreview">
+            <span class="alias-preview__value" x-text="previewText"></span>
           </button>
-          <p id="aliasPreviewHint" class="alias-preview__hint" hidden>Pulsa para copiar.</p>
+          <p class="alias-preview__hint" x-text="copied ? '¡Copiado!' : 'Pulsa para copiar'"></p>
         </div>
       </div>
     </div>
-  </div>
+  </form>
 </section>
-</form>
-<p id="aliasError" class="form-error" aria-live="polite" hidden></p>
 
 <section class="dest-section">
   <div class="dest-section__container">
-    <header class="dest-section__header">
-      <h2 id="destSectionTitle">Destinatarios</h2>
-    </header>
+    <header class="dest-section__header"><h2>Destinatarios</h2></header>
     <div class="dest-section__content">
       <div class="dest-section__column dest-section__column--form">
-        <form id="newDestForm" class="dest-section__form">
+        <form @submit.prevent="addDest" class="dest-section__form">
           <div class="dest-section__form-fields">
-            <input required type="email" id="newDest" class="compact-input" placeholder="destino@ejemplo.com" autocomplete="email">
-            <button id="addDest" class="compact-btn dest-section__cta" type="submit"><span class="btn-text">Añadir</span></button>
+            <input x-model="newDestInput" required type="email" class="compact-input" placeholder="destino@ejemplo.com" autocomplete="email">
+            <button class="compact-btn dest-section__cta" type="submit" :disabled="loading || !newDestInput">Añadir</button>
           </div>
         </form>
-        <p id="newDestError" class="form-error" aria-live="polite" hidden></p>
+        <p class="form-error" x-show="errors.dest" x-text="errors.dest"></p>
       </div>
+
       <div class="dest-section__column dest-section__column--list">
-        <ul id="destList" class="dest-card-list" aria-live="polite"></ul>
+        <ul class="dest-card-list">
+          <template x-for="dest in dests" :key="dest.id">
+            <li>
+              <details class="rule-card" :class="isVerified(dest) ? 'rule-card--active' : 'rule-card--inactive'">
+                <summary x-text="dest.email"></summary>
+                <div class="rule-content">
+                  <div class="rule-field">
+                    <span class="rule-label">Estado</span>
+                    <span class="rule-status-label" :class="isVerified(dest) ? 'rule-status-label--active' : 'rule-status-label--inactive'" x-text="isVerified(dest) ? 'Verificado' : 'Pendiente'"></span>
+                  </div>
+                  <div class="rule-field rule-field--actions">
+                    <span class="rule-label">Acciones</span>
+                    <button @click="deleteDest(dest.id)" type="button" class="secondary danger sm action-btn">Eliminar</button>
+                  </div>
+                </div>
+              </details>
+            </li>
+          </template>
+          <li x-show="dests.length === 0" class="rule-empty">No hay destinatarios.</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -95,14 +118,37 @@
   <header class="section-actions">
     <h2 class="mr-auto">Alias existentes</h2>
     <div class="table-actions ml-auto">
-      <input id="aliasSearch" class="compact-input alias-search" type="search" placeholder="Buscar alias">
+      <input x-model="search" class="compact-input alias-search" type="search" placeholder="Buscar alias">
     </div>
   </header>
-  <div id="rulesList" class="rule-card-list" aria-live="polite"></div>
+  
+  <div class="rule-card-list">
+    <template x-for="rule in filteredRules" :key="rule.id">
+      <details class="rule-card" :class="rule.enabled ? 'rule-card--active' : 'rule-card--inactive'">
+        <summary x-text="rule.name"></summary>
+        <div class="rule-content">
+          <div class="rule-field">
+             <span class="rule-label">Estado</span>
+             <span class="rule-status-label" :class="rule.enabled ? 'rule-status-label--active' : 'rule-status-label--inactive'" x-text="rule.enabled ? 'Activo' : 'Pausado'"></span>
+          </div>
+          <div class="rule-field">
+             <span class="rule-label">Destino</span>
+             <span x-text="getRuleDest(rule)"></span>
+          </div>
+          <div class="rule-field rule-field--actions">
+             <span class="rule-label">Acciones</span>
+             <button @click="toggleRule(rule)" class="secondary sm action-btn" x-text="rule.enabled ? 'Pausar' : 'Activar'"></button>
+             <button @click="deleteRule(rule.id)" class="secondary danger sm action-btn">Eliminar</button>
+          </div>
+        </div>
+      </details>
+    </template>
+    <div x-show="filteredRules.length === 0" class="rule-empty">
+      <span x-text="rules.length === 0 ? 'No hay alias creados.' : 'No hay alias que coincidan.'"></span>
+    </div>
+  </div>
 </section>
 
-<div id="status" role="status" aria-live="polite" class="status-toast"></div>
 </main>
-<script type="module" src="/app.js"></script>
 </body>
 </html>
