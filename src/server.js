@@ -18,14 +18,11 @@ const AUTH_USER = process.env.AUTH_USER;
 const AUTH_PASS = process.env.AUTH_PASS;
 const DOMAIN = process.env.DOMAIN;
 
-// --- MEJORA: Detección más flexible de HTTPS/Producción ---
-// isHttps: solo verdadero si la URL explícitamente empieza por https
-const isHttps = process.env.BASE_URL?.startsWith('https');
-// isProduction: solo verdadero si el entorno está marcado como producción
+// --- Detección de entorno ---
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Confiar en el proxy si estamos en https o en producción (necesario para cookies tras proxy/docker)
-if (isHttps || isProduction) {
+// Confiar en el proxy si estamos en producción (necesario para Docker/Nginx/Cloudflare)
+if (isProduction) {
   app.set('trust proxy', 1);
 }
 
@@ -65,10 +62,9 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 días
     httpOnly: true,
     sameSite: 'lax', 
-    // CORRECCIÓN PRINCIPAL:
-    // Solo requerir cookie 'Secure' si la URL es https O si estamos forzando producción.
-    // Esto permite que funcione en http://IP_LOCAL sin problemas.
-    secure: isHttps || isProduction 
+    // CORRECCIÓN CRÍTICA: Solo usar cookies seguras (HTTPS) si estamos estrictamente en producción.
+    // Esto evita que el login falle silenciosamente si pruebas en localhost con una URL https en .env
+    secure: isProduction
   }
 }));
 
@@ -107,13 +103,10 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
-// { index: false } evita que sirva index.html automáticamente en la raíz '/'.
-// Así obligamos a que la petición '/' caiga en el manejador de abajo con requireAuth.
+// Evita servir index.html automáticamente para protegerlo con requireAuth
 app.use(express.static('public', { index: false }));
 
 // --- API Endpoints (Protegidos) ---
-// Nota: Usamos process.env.CF_XXX directamente para soportar la autoconfiguración
-
 const addressSchema = z.object({
   email: z.string().email("Formato de correo inválido")
 });
@@ -221,14 +214,13 @@ app.delete('/api/rules/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Fallback para SPA (Ahora sí se ejecuta gracias a index: false arriba)
+// Fallback para SPA 
 app.get('/', requireAuth, (req, res) => {
   res.sendFile(path.resolve('public/index.html'));
 });
 
-// --- MEJORA: Autoconfiguración ---
+// --- Autoconfiguración ---
 async function autoConfigure() {
-  // Si ya tenemos los IDs, no hacemos nada
   if (process.env.CF_ZONE_ID && process.env.CF_ACCOUNT_ID) return;
 
   console.log('⚙️ Faltan IDs de configuración. Detectando automáticamente...');
@@ -238,7 +230,6 @@ async function autoConfigure() {
   }
 
   try {
-    // Buscamos la zona por nombre
     const zones = await fetchCloudflare(`/zones?name=${process.env.DOMAIN}`);
     const zone = zones[0];
     
@@ -246,24 +237,20 @@ async function autoConfigure() {
       throw new Error(`Dominio ${process.env.DOMAIN} no encontrado en esta cuenta de Cloudflare.`);
     }
     
-    // Inyectamos las variables en tiempo de ejecución
     process.env.CF_ZONE_ID = zone.id;
     process.env.CF_ACCOUNT_ID = zone.account.id;
     
     console.log(`✅ Autoconfiguración exitosa para ${process.env.DOMAIN}`);
-    console.log(`   Zone ID: ${zone.id}`);
-    console.log(`   Account ID: ${zone.account.id}`);
   } catch (err) {
     console.error('❌ Error fatal en autoconfiguración:', err.message);
     process.exit(1);
   }
 }
 
-// Iniciar servidor después de asegurar la configuración
 autoConfigure().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🔒 Modo Seguro (HTTPS): ${isHttps ? 'SI' : 'NO'} | Producción: ${isProduction ? 'SI' : 'NO'}`);
+    console.log(`🔒 Modo Producción: ${isProduction ? 'SI' : 'NO'}`);
     console.log(`👤 Auth User: ${AUTH_USER}`);
   });
 });
