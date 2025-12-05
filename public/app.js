@@ -45,7 +45,13 @@ document.addEventListener('alpine:init', () => {
 
     // API Client (MEJORADO)
     async api(path, method = 'GET', body = null) {
-      const opts = { headers: { 'Content-Type': 'application/json' } };
+      const opts = { 
+        headers: { 'Content-Type': 'application/json' },
+        // --- CORRECCIÓN CLAVE ---
+        // 'include' fuerza al navegador a enviar la cookie de sesión en la petición AJAX.
+        credentials: 'include' 
+      };
+      
       if (method !== 'GET') {
         opts.method = method;
         if (body) opts.body = JSON.stringify(body);
@@ -53,10 +59,9 @@ document.addEventListener('alpine:init', () => {
       
       const res = await fetch(path, opts);
 
-      // Redirección automática al login
+      // Redirección automática al login si la sesión expiró
       if (res.status === 401) {
         window.location.href = '/login.html';
-        // CORRECCIÓN: Lanzamos error para detener la ejecución y que los .catch() funcionen
         throw new Error('Sesión expirada, redirigiendo...');
       }
 
@@ -69,14 +74,12 @@ document.addEventListener('alpine:init', () => {
     async refreshAll() {
       this.loading = true;
       try {
-        // CORRECCIÓN: Si falla la autenticación, catch devuelve objetos seguros para no romper la UI
         const [meData, rulesData, destsData] = await Promise.all([
           this.api('/api/me').catch(() => ({})),
           this.api('/api/rules').catch(() => ({ result: [] })),
           this.api('/api/addresses').catch(() => ({ result: [] }))
         ]);
 
-        // Asignación segura
         this.profile = meData || {};
         this.rules = rulesData?.result || [];
         this.dests = destsData?.result || [];
@@ -86,7 +89,6 @@ document.addEventListener('alpine:init', () => {
           this.newAlias.dest = this.verifiedDests[0].email;
         }
       } catch (err) {
-        // Este catch captura errores generales, no los de auth que ya fueron manejados
         console.error(err);
       } finally {
         this.loading = false;
