@@ -98,14 +98,12 @@ VUZON_PORT=8001
 ```yaml
 services:
   vuzon:
-    image: ghcr.io/svnz0x/vuzon
+    image: ghcr.io/svnz0x/vuzon-selhosted
     env_file:
       - .env
     restart: unless-stopped
     ports:
       - "${VUZON_PORT:-8001}:8001"
-    volumes:
-      - ./sessions:/app/sessions
 ```
 
 
