@@ -1,0 +1,13 @@
+{
+  "name": "vuzon-selfhosted",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.2.0",
+    "dotenv": "^16.3.1",
+    "hono": "^3.10.0"
+  }
+}
