@@ -26,7 +26,7 @@ Thumbs.db
 
 # --- Scripts de desarrollo/setup local ---
 # El Dockerfile ya maneja la descarga de Alpine por su cuenta
-scripts
+# scripts
 
 # --- Archivos de Docker ---
 Dockerfile
