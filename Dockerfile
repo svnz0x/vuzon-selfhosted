@@ -15,11 +15,11 @@ ENV PORT=8001
 
 EXPOSE 8001
 
-# Healthcheck para verificar que el servicio responde
+# Healthcheck: Docker sabrá si la app se colgó
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/api/me || exit 1
 
-# Usar usuario no-root por seguridad
+# Seguridad: Ejecutar como usuario sin privilegios
 USER node
 
 CMD ["node", "src/server.js"]
