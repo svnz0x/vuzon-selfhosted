@@ -1,24 +1,39 @@
-# Dependencias locales
-node_modules
-npm-debug.log
-
-# Git
+# --- Git & CI/CD ---
 .git
 .gitignore
-
-# Entorno y Secretos
-.env
-.session_secret
-
-# Archivos de sesión locales
-sessions
-
-# Docker & CI/CD
-Dockerfile
-docker-compose.yml
-.dockerignore
 .github
 
-# Documentación y otros
+# --- Dependencias y Logs ---
+node_modules
+npm-debug.log
+yarn-error.log
+
+# --- Entorno y Secretos ---
+# Evita copiar secretos accidentalmente si cambias a "COPY . ."
+.env
+.env*
+.session_secret
+
+# --- Datos Locales ---
+sessions
+
+# --- IDEs y Sistema Operativo ---
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.swp
+
+# --- Scripts de desarrollo/setup local ---
+# El Dockerfile ya maneja la descarga de Alpine por su cuenta
+scripts
+
+# --- Archivos de Docker ---
+Dockerfile
+docker-compose*
+.dockerignore
+
+# --- Documentación ---
 README.md
 LICENSE
+*.md
