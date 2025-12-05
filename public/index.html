@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="/ui.css">
 
 <script type="module" src="/app.js"></script>
-
 <script defer src="/js/alpine.js"></script>
 </head>
 <body x-data="vuzonApp" x-cloak>
@@ -18,11 +17,16 @@
 <header class="titlebar">
   <h1>
     <img src="/assets/logo.png" class="logo" alt="vuzon" width="44" height="44"> 
-    <span class="title-text">
-      <span class="subdomain-label" x-text="profile.rootDomain || '—'"></span>
-    </span>
+    <span class="title-text" x-text="profile.rootDomain || 'Cargando...'"></span>
   </h1>
   <div class="titlebar-actions">
+    <button @click="logout" type="button" class="secondary compact-btn" aria-label="Cerrar sesión">
+      <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+      </svg>
+      <span class="btn-text">Salir</span>
+    </button>
+
     <button @click="refreshAll" type="button" class="titlebar-button refresh-button" :class="{ 'loading': loading }" aria-label="Actualizar">
       <svg class="refresh-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.023 9.348h4.992V4.356m0 0L18.2 7.17a8.25 8.25 0 0 0-14.547 4.167M7.977 14.652H2.985v4.992m0 0 2.815-2.814a8.25 8.25 0 0 0 14.546-4.167"/></svg>
     </button>
@@ -77,42 +81,34 @@
 </section>
 
 <section class="dest-section">
-  <div class="dest-section__container">
-    <header class="dest-section__header"><h2>Destinatarios</h2></header>
-    <div class="dest-section__content">
-      <div class="dest-section__column dest-section__column--form">
-        <form @submit.prevent="addDest" class="dest-section__form">
-          <div class="dest-section__form-fields">
-            <input x-model="newDestInput" required type="email" class="compact-input" placeholder="destino@ejemplo.com" autocomplete="email">
-            <button class="compact-btn dest-section__cta" type="submit" :disabled="loading || !newDestInput">Añadir</button>
-          </div>
+  <header class="section-actions">
+    <h2 class="mr-auto">Destinatarios</h2>
+    <div class="table-actions ml-auto" style="flex-wrap: nowrap;">
+        <form @submit.prevent="addDest" style="display: flex; gap: 8px; width: 100%;">
+            <input x-model="newDestInput" required type="email" class="compact-input" placeholder="nuevo@email.com" autocomplete="email" style="min-width: 200px;">
+            <button class="compact-btn" type="submit" :disabled="loading || !newDestInput">Añadir</button>
         </form>
-        <p class="form-error" x-show="errors.dest" x-text="errors.dest"></p>
-      </div>
-
-      <div class="dest-section__column dest-section__column--list">
-        <ul class="dest-card-list">
-          <template x-for="dest in dests" :key="dest.id">
-            <li>
-              <details class="rule-card" :class="isVerified(dest) ? 'rule-card--active' : 'rule-card--inactive'">
-                <summary x-text="dest.email"></summary>
-                <div class="rule-content">
-                  <div class="rule-field">
-                    <span class="rule-label">Estado</span>
-                    <span class="rule-status-label" :class="isVerified(dest) ? 'rule-status-label--active' : 'rule-status-label--inactive'" x-text="isVerified(dest) ? 'Verificado' : 'Pendiente'"></span>
-                  </div>
-                  <div class="rule-field rule-field--actions">
-                    <span class="rule-label">Acciones</span>
-                    <button @click="deleteDest(dest.id)" type="button" class="secondary danger sm action-btn">Eliminar</button>
-                  </div>
-                </div>
-              </details>
-            </li>
-          </template>
-          <li x-show="dests.length === 0" class="rule-empty">No hay destinatarios.</li>
-        </ul>
-      </div>
     </div>
+  </header>
+  <p class="form-error" x-show="errors.dest" x-text="errors.dest" style="margin-bottom: 1rem;"></p>
+
+  <div class="rule-card-list">
+    <template x-for="dest in dests" :key="dest.id">
+        <details class="rule-card" :class="isVerified(dest) ? 'rule-card--active' : 'rule-card--inactive'">
+          <summary x-text="dest.email"></summary>
+          <div class="rule-content">
+            <div class="rule-field">
+              <span class="rule-label">Estado</span>
+              <span class="rule-status-label" :class="isVerified(dest) ? 'rule-status-label--active' : 'rule-status-label--inactive'" x-text="isVerified(dest) ? 'Verificado' : 'Pendiente (revisa tu correo)'"></span>
+            </div>
+            <div class="rule-field rule-field--actions">
+              <span class="rule-label">Acciones</span>
+              <button @click="deleteDest(dest.id)" type="button" class="secondary danger sm action-btn">Eliminar</button>
+            </div>
+          </div>
+        </details>
+    </template>
+    <div x-show="dests.length === 0" class="rule-empty">No hay destinatarios configurados.</div>
   </div>
 </section>
 
@@ -120,7 +116,7 @@
   <header class="section-actions">
     <h2 class="mr-auto">Alias existentes</h2>
     <div class="table-actions ml-auto">
-      <input x-model="search" class="compact-input alias-search" type="search" placeholder="Buscar alias">
+      <input x-model="search" class="compact-input alias-search" type="search" placeholder="Buscar alias...">
     </div>
   </header>
   
@@ -146,7 +142,7 @@
       </details>
     </template>
     <div x-show="filteredRules.length === 0" class="rule-empty">
-      <span x-text="rules.length === 0 ? 'No hay alias creados.' : 'No hay alias que coincidan.'"></span>
+      <span x-text="rules.length === 0 ? 'No hay alias creados.' : 'No se encontraron alias.'"></span>
     </div>
   </div>
 </section>
