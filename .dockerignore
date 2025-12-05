@@ -24,10 +24,6 @@ sessions
 Thumbs.db
 *.swp
 
-# --- Scripts de desarrollo/setup local ---
-# El Dockerfile ya maneja la descarga de Alpine por su cuenta
-# scripts
-
 # --- Archivos de Docker ---
 Dockerfile
 docker-compose*
