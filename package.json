@@ -1,13 +1,15 @@
 {
   "name": "vuzon-selfhosted",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "start": "node src/server.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
+    "@hono/zod-validator": "^0.1.0",
     "dotenv": "^16.3.1",
-    "hono": "^3.10.0"
+    "hono": "^3.10.0",
+    "zod": "^3.22.4"
   }
 }
