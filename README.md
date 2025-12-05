@@ -97,7 +97,7 @@ VUZON_PORT=8001
 ```yaml
 services:
   vuzon:
-    image: ghcr.io/svnz0x/vuzon-selhosted
+    image: ghcr.io/svnz0x/vuzon-selfhosted
     env_file:
       - .env
     restart: unless-stopped
