@@ -7,7 +7,7 @@ export const cfHeaders = () => ({
   'Authorization': `Bearer ${process.env.CF_API_TOKEN}`
 });
 
-// Función base para una petición simple
+// Petición simple a Cloudflare
 export async function fetchCloudflare(path, method = 'GET', body = null) {
   const url = `${CF_API_URL}${path}`;
   const options = {
@@ -26,17 +26,15 @@ export async function fetchCloudflare(path, method = 'GET', body = null) {
   return data.result;
 }
 
-// Nueva función para obtener TODOS los resultados paginados
+// NUEVO: Obtener TODOS los resultados paginados (para más de 50 items)
 export async function fetchAllCloudflare(path) {
   let allResults = [];
   let page = 1;
   let totalPages = 1;
   
-  // Determinar si ya existen query params para usar '&' o '?'
   const separator = path.includes('?') ? '&' : '?';
 
   do {
-    // Llamada manual para acceder a 'result_info' (paginación)
     const url = `${CF_API_URL}${path}${separator}page=${page}&per_page=50`;
     const res = await fetch(url, { headers: cfHeaders() });
     const data = await res.json();
