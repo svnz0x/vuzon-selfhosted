@@ -1,13 +1,8 @@
 services:
   vuzon:
-    container_name: vuzon
-    build: .
+    image: ghcr.io/svnz0x/vuzon-selhosted
+    env_file:
+      - .env
     restart: unless-stopped
     ports:
-      - "3000:3000"
-    environment:
-      # Tienes que rellenar esto con tus datos reales
-      - CF_API_TOKEN=tu_token_de_cloudflare
-      - CF_ZONE_ID=tu_zone_id
-      - CF_ACCOUNT_ID=tu_account_id
-      - ROOT_DOMAIN=midominio.com
+      - "${VUZON_PORT:-8001}:8001"
