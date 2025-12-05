@@ -43,15 +43,12 @@ document.addEventListener('alpine:init', () => {
       this.refreshAll();
     },
 
-    // API Client (MEJORADO)
+    // API Client
     async api(path, method = 'GET', body = null) {
       const opts = { 
         headers: { 'Content-Type': 'application/json' },
-        // --- CORRECCIÓN CLAVE ---
-        // 'include' fuerza al navegador a enviar la cookie de sesión en la petición AJAX.
-        credentials: 'include' 
+        credentials: 'include' // Imprescindible para auth
       };
-      
       if (method !== 'GET') {
         opts.method = method;
         if (body) opts.body = JSON.stringify(body);
@@ -59,10 +56,9 @@ document.addEventListener('alpine:init', () => {
       
       const res = await fetch(path, opts);
 
-      // Redirección automática al login si la sesión expiró
       if (res.status === 401) {
         window.location.href = '/login.html';
-        throw new Error('Sesión expirada, redirigiendo...');
+        throw new Error('Sesión expirada');
       }
 
       const data = await res.json();
@@ -74,13 +70,14 @@ document.addEventListener('alpine:init', () => {
     async refreshAll() {
       this.loading = true;
       try {
+        // Ejecutamos las peticiones. Si alguna falla, saltará al catch y veremos el error.
         const [meData, rulesData, destsData] = await Promise.all([
-          this.api('/api/me').catch(() => ({})),
-          this.api('/api/rules').catch(() => ({ result: [] })),
-          this.api('/api/addresses').catch(() => ({ result: [] }))
+          this.api('/api/me'),
+          this.api('/api/rules'),
+          this.api('/api/addresses')
         ]);
 
-        this.profile = meData || {};
+        this.profile = meData || { rootDomain: '' };
         this.rules = rulesData?.result || [];
         this.dests = destsData?.result || [];
         
@@ -89,7 +86,14 @@ document.addEventListener('alpine:init', () => {
           this.newAlias.dest = this.verifiedDests[0].email;
         }
       } catch (err) {
-        console.error(err);
+        console.error('Error cargando datos:', err);
+        // MOSTRAR ERROR EN LA UI para depuración
+        this.setStatus(`Error de carga: ${err.message}`);
+        
+        // Evitar que la UI se rompa completamente dejando arrays vacíos
+        this.profile = this.profile || { rootDomain: '' };
+        this.rules = this.rules || [];
+        this.dests = this.dests || [];
       } finally {
         this.loading = false;
       }
@@ -186,7 +190,7 @@ document.addEventListener('alpine:init', () => {
     setStatus(msg) {
       this.statusMsg = msg;
       if (this.statusTimer) clearTimeout(this.statusTimer);
-      this.statusTimer = setTimeout(() => this.statusMsg = '', 3000);
+      this.statusTimer = setTimeout(() => this.statusMsg = '', 5000); // 5s para leer errores
     },
 
     clearErrors() { this.errors.alias = ''; this.errors.dest = ''; },
