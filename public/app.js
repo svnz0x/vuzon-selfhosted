@@ -25,9 +25,12 @@ document.addEventListener('alpine:init', () => {
       return this.dests.filter(d => isVerifiedStatus(d.verified));
     },
     get filteredRules() {
-      if (!this.search) return this.rules;
+      // MODIFICADO: Filtrar reglas sin nombre (catch-all) antes de buscar
+      const validRules = this.rules.filter(r => r.name && r.name.trim() !== '');
+
+      if (!this.search) return validRules;
       const q = this.search.toLowerCase();
-      return this.rules.filter(r => r.name && r.name.toLowerCase().includes(q));
+      return validRules.filter(r => r.name.toLowerCase().includes(q));
     },
     get previewText() {
       const local = this.newAlias.local.trim().toLowerCase() || 'alias';
