@@ -1,1 +1,34 @@
+# --- Dependencias ---
+node_modules/
+# package-lock.json # Recomendado mantenerlo en git para consistencia, descomenta si prefieres ignorarlo
+
+# --- Entorno y Secretos (CRÍTICO) ---
+.env
+.env.local
+.env.*
+.session_secret
+
+# --- Datos de ejecución (Persistencia local) ---
+# server.js usa 'session-file-store' en esta carpeta
+sessions/
+
+# --- Logs y Debug ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# --- Sistema Operativo ---
 .DS_Store
+Thumbs.db
+._*
+
+# --- Editor / IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Docker Local ---
+docker-compose.override.yml
