@@ -36,8 +36,12 @@ if (!sessionSecret) {
     sessionSecret = fs.readFileSync(SECRET_FILE, 'utf-8');
   } else {
     sessionSecret = crypto.randomBytes(32).toString('hex');
-    fs.writeFileSync(SECRET_FILE, sessionSecret);
-    console.log('Generado nuevo secreto de sesión en .session_secret');
+    try {
+      fs.writeFileSync(SECRET_FILE, sessionSecret);
+      console.log('Generado nuevo secreto de sesión en .session_secret');
+    } catch (err) {
+      console.warn('⚠️ No se pudo guardar .session_secret (revisa permisos), pero se usará en memoria.');
+    }
   }
 }
 
@@ -98,7 +102,10 @@ app.post('/api/logout', (req, res) => {
   });
 });
 
-app.use(express.static('public'));
+// --- CORRECCIÓN IMPORTANTE AQUÍ ---
+// { index: false } evita que sirva index.html automáticamente en la raíz '/'.
+// Así obligamos a que la petición '/' caiga en el manejador de abajo con requireAuth.
+app.use(express.static('public', { index: false }));
 
 // --- API Endpoints (Protegidos) ---
 // Nota: Usamos process.env.CF_XXX directamente para soportar la autoconfiguración
@@ -210,7 +217,7 @@ app.delete('/api/rules/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Fallback para SPA
+// Fallback para SPA (Ahora sí se ejecuta gracias a index: false arriba)
 app.get('/', requireAuth, (req, res) => {
   res.sendFile(path.resolve('public/index.html'));
 });
