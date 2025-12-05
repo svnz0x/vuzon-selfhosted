@@ -1,25 +1,43 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { serveStatic } from '@hono/node-server/serve-static';
+import { basicAuth } from 'hono/basic-auth'; //
 import { fetchCloudflare } from './utils.js';
 
 const app = new Hono();
-const PORT = Number(process.env.PORT) || 3000;
 
+// Configuración de Puerto (8001 por defecto) y dominio
+const PORT = Number(process.env.PORT) || 8001;
 const ZONE_ID = process.env.CF_ZONE_ID;
 const ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
-const DOMAIN = process.env.ROOT_DOMAIN;
+// Cambio: ROOT_DOMAIN ahora es DOMAIN según tu nuevo .env
+const DOMAIN = process.env.DOMAIN; 
+
+// Credenciales de acceso
+const AUTH_USER = process.env.AUTH_USER;
+const AUTH_PASS = process.env.AUTH_PASS;
+
+// --- Middlewares ---
+
+// 1. Autenticación Básica (Protege todo el sitio si las variables existen)
+if (AUTH_USER && AUTH_PASS) {
+  app.use('/*', basicAuth({
+    username: AUTH_USER,
+    password: AUTH_PASS,
+    realm: 'Vuzon Admin Area'
+  }));
+}
 
 // -- API Endpoints --
 
 // Perfil simple
 app.get('/api/me', (c) => {
   return c.json({
-    email: 'admin',
-    subdomain: '@', // Representa la raíz
+    email: AUTH_USER || 'admin', // Muestra el usuario configurado
+    subdomain: '@', 
     rootDomain: DOMAIN,
     fqdn: DOMAIN,
-    hasRoutingMx: true // Asumimos que lo tienes configurado
+    hasRoutingMx: true 
   });
 });
 
@@ -65,7 +83,6 @@ app.delete('/api/addresses/:id', async (c) => {
 // Listar reglas (Alias)
 app.get('/api/rules', async (c) => {
   try {
-    // Traemos las reglas. Opcional: podrías filtrar las que terminen en tu DOMAIN si usas esa zona para otras cosas.
     const rules = await fetchCloudflare(`/zones/${ZONE_ID}/email/routing/rules?per_page=100`);
     return c.json({ result: rules });
   } catch (err) {
@@ -76,7 +93,6 @@ app.get('/api/rules', async (c) => {
 // Crear regla (Alias)
 app.post('/api/rules', async (c) => {
   const body = await c.req.json();
-  // Construimos el email final: alias@midominio.com
   const aliasEmail = `${body.localPart}@${DOMAIN}`;
   
   try {
@@ -94,17 +110,14 @@ app.post('/api/rules', async (c) => {
   }
 });
 
-// Toggle (Activar/Pausar) Regla
+// Toggle Regla
 app.post('/api/rules/:id/:action', async (c) => {
   const id = c.req.param('id');
-  const action = c.req.param('action'); // 'enable' o 'disable'
+  const action = c.req.param('action'); 
   const enabled = action === 'enable';
 
   try {
-    // Primero necesitamos obtener la regla actual para no sobrescribir otros campos
     const rule = await fetchCloudflare(`/zones/${ZONE_ID}/email/routing/rules/${id}`);
-    
-    // Actualizamos solo el estado 'enabled'
     const res = await fetchCloudflare(`/zones/${ZONE_ID}/email/routing/rules/${id}`, 'PUT', {
       ...rule,
       enabled
