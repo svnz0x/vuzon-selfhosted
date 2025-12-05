@@ -1,0 +1,24 @@
+# Dependencias locales
+node_modules
+npm-debug.log
+
+# Git
+.git
+.gitignore
+
+# Entorno y Secretos
+.env
+.session_secret
+
+# Archivos de sesión locales
+sessions
+
+# Docker & CI/CD
+Dockerfile
+docker-compose.yml
+.dockerignore
+.github
+
+# Documentación y otros
+README.md
+LICENSE
