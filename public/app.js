@@ -43,14 +43,23 @@ document.addEventListener('alpine:init', () => {
       this.refreshAll();
     },
 
-    // API Client
+    // API Client (MEJORADO)
     async api(path, method = 'GET', body = null) {
       const opts = { headers: { 'Content-Type': 'application/json' } };
       if (method !== 'GET') {
         opts.method = method;
         if (body) opts.body = JSON.stringify(body);
       }
+      
       const res = await fetch(path, opts);
+
+      // --- INICIO MEJORA: Redirección automática al login ---
+      if (res.status === 401) {
+        window.location.href = '/login.html';
+        return; // Detenemos la ejecución para no procesar el JSON
+      }
+      // --- FIN MEJORA ---
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || data.message || `Error ${res.status}`);
       return data;
