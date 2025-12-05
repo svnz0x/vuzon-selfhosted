@@ -19,7 +19,7 @@ const AUTH_PASS = process.env.AUTH_PASS;
 
 // --- Middlewares ---
 
-// 1. Cabeceras de seguridad
+// 1. Seguridad HTTP
 app.use('*', secureHeaders());
 
 // 2. Autenticación Básica
@@ -31,7 +31,7 @@ if (AUTH_USER && AUTH_PASS) {
   }));
 }
 
-// --- Schemas de Validación (Zod) ---
+// --- Validaciones (Zod) ---
 const addressSchema = z.object({
   email: z.string().email("Formato de correo inválido")
 });
@@ -40,27 +40,22 @@ const ruleSchema = z.object({
   localPart: z.string()
     .min(1, "El alias no puede estar vacío")
     .max(64, "El alias es demasiado largo")
-    .regex(/^[a-z0-9._-]+$/, "Solo se permiten letras minúsculas, números, puntos, guiones bajos y guiones"),
+    .regex(/^[a-z0-9._-]+$/, "Solo minúsculas, números, puntos y guiones"),
   destEmail: z.string().email("Email de destino inválido")
 });
 
 // --- API Endpoints ---
 
-// Perfil
 app.get('/api/me', (c) => {
   return c.json({
     email: AUTH_USER || 'admin',
-    subdomain: '@', 
     rootDomain: DOMAIN,
-    fqdn: DOMAIN,
-    hasRoutingMx: true 
   });
 });
 
-// Listar destinos (Paginado)
+// Usamos fetchAllCloudflare para paginación
 app.get('/api/addresses', async (c) => {
   try {
-    // Usamos fetchAll para traer todas las páginas
     const result = await fetchAllCloudflare(`/accounts/${ACCOUNT_ID}/email/routing/addresses`);
     const mapped = result.map(r => ({
       email: r.email,
@@ -73,7 +68,6 @@ app.get('/api/addresses', async (c) => {
   }
 });
 
-// Crear destino (Validado)
 app.post('/api/addresses', zValidator('json', addressSchema), async (c) => {
   const body = c.req.valid('json');
   try {
@@ -86,7 +80,6 @@ app.post('/api/addresses', zValidator('json', addressSchema), async (c) => {
   }
 });
 
-// Borrar destino
 app.delete('/api/addresses/:id', async (c) => {
   const id = c.req.param('id');
   try {
@@ -97,10 +90,9 @@ app.delete('/api/addresses/:id', async (c) => {
   }
 });
 
-// Listar reglas (Paginado)
+// Usamos fetchAllCloudflare para traer todas las reglas
 app.get('/api/rules', async (c) => {
   try {
-    // Usamos fetchAll para traer todas las páginas
     const rules = await fetchAllCloudflare(`/zones/${ZONE_ID}/email/routing/rules`);
     return c.json({ result: rules });
   } catch (err) {
@@ -108,7 +100,6 @@ app.get('/api/rules', async (c) => {
   }
 });
 
-// Crear regla (Validado)
 app.post('/api/rules', zValidator('json', ruleSchema), async (c) => {
   const { localPart, destEmail } = c.req.valid('json');
   const aliasEmail = `${localPart}@${DOMAIN}`;
@@ -128,7 +119,6 @@ app.post('/api/rules', zValidator('json', ruleSchema), async (c) => {
   }
 });
 
-// Toggle Regla
 app.post('/api/rules/:id/:action', async (c) => {
   const id = c.req.param('id');
   const action = c.req.param('action'); 
@@ -146,7 +136,6 @@ app.post('/api/rules/:id/:action', async (c) => {
   }
 });
 
-// Borrar regla
 app.delete('/api/rules/:id', async (c) => {
   const id = c.req.param('id');
   try {
@@ -157,24 +146,8 @@ app.delete('/api/rules/:id', async (c) => {
   }
 });
 
-// Activar Email Routing (DNS)
-app.post('/api/enable-routing', async (c) => {
-  try {
-    const res = await fetchCloudflare(`/zones/${ZONE_ID}/email/routing/dns`, 'POST', {
-      name: DOMAIN
-    });
-    return c.json({ result: res });
-  } catch (err) {
-    return c.json({ error: err.message }, 500);
-  }
-});
-
-// -- Static Files --
 app.use('/*', serveStatic({ root: './public' }));
 
 console.log(`Server running on port ${PORT}`);
 
-serve({
-  fetch: app.fetch,
-  port: PORT
-});
+serve({ fetch: app.fetch, port: PORT });
