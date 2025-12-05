@@ -11,8 +11,8 @@ COPY src ./src
 COPY public ./public
 
 # Variables de entorno por defecto
-ENV PORT=3000
+ENV PORT=8001
 
-EXPOSE 3000
+EXPOSE 8001
 
 CMD ["node", "src/server.js"]
