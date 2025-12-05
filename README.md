@@ -9,15 +9,19 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/frontend-Alpine.js-8BC0D0?logo=alpinedotjs&logoColor=white" alt="Alpine.js"/>
+  <a href="https://github.com/svnz0x/vuzon-selfhosted/stargazers">
+    <img src="https://img.shields.io/github/stars/svnz0x/vuzon-selfhosted?style=social" alt="GitHub stars"/>
+  </a>
   &nbsp;
-  <img src="https://img.shields.io/badge/backend-Node.js%20%2B%20Express-339933?logo=nodedotjs&logoColor=white" alt="Node.js + Express"/>
+  <a href="https://github.com/svnz0x/vuzon-selfhosted/issues">
+    <img src="https://img.shields.io/github/issues/svnz0x/vuzon-selfhosted" alt="GitHub issues"/>
+  </a>
   &nbsp;
-  <img src="https://img.shields.io/badge/validation-Zod-3068B7?logo=zod&logoColor=white" alt="Zod"/>
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/github/license/svnz0x/vuzon-selfhosted" alt="License"/>
+  </a>
   &nbsp;
-  <img src="https://img.shields.io/badge/infra-Docker-2496ED?logo=docker&logoColor=white" alt="Docker"/>
-  &nbsp;
-  <img src="https://img.shields.io/badge/API-Cloudflare-F38020?logo=cloudflare&logoColor=white" alt="Cloudflare"/>
+  <img src="https://img.shields.io/github/last-commit/svnz0x/vuzon-selfhosted" alt="Last commit"/>
 </p>
 
 <p align="center">
