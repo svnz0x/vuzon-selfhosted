@@ -20,14 +20,13 @@
     <span class="title-text" x-text="profile.rootDomain || 'Cargando...'"></span>
   </h1>
   <div class="titlebar-actions">
-    <button @click="logout" type="button" class="secondary compact-btn" aria-label="Cerrar sesión">
+    <button @click="logout" type="button" class="titlebar-button" aria-label="Cerrar sesión" title="Cerrar sesión">
       <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
       </svg>
-      <span class="btn-text">Salir</span>
     </button>
 
-    <button @click="refreshAll" type="button" class="titlebar-button refresh-button" :class="{ 'loading': loading }" aria-label="Actualizar">
+    <button @click="refreshAll" type="button" class="titlebar-button refresh-button" :class="{ 'loading': loading }" aria-label="Actualizar" title="Actualizar">
       <svg class="refresh-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.023 9.348h4.992V4.356m0 0L18.2 7.17a8.25 8.25 0 0 0-14.547 4.167M7.977 14.652H2.985v4.992m0 0 2.815-2.814a8.25 8.25 0 0 0 14.546-4.167"/></svg>
     </button>
   </div>
