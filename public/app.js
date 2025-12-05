@@ -31,7 +31,7 @@ document.addEventListener('alpine:init', () => {
     },
     get previewText() {
       const local = this.newAlias.local.trim().toLowerCase() || 'alias';
-      const domain = this.profile?.rootDomain || '—';
+      const domain = this.profile?.rootDomain || '...';
       return `${local}@${domain}`;
     },
     get canCreateAlias() {
@@ -47,7 +47,7 @@ document.addEventListener('alpine:init', () => {
     async api(path, method = 'GET', body = null) {
       const opts = { 
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include' // Imprescindible para auth
+        credentials: 'include' 
       };
       if (method !== 'GET') {
         opts.method = method;
@@ -70,7 +70,6 @@ document.addEventListener('alpine:init', () => {
     async refreshAll() {
       this.loading = true;
       try {
-        // Ejecutamos las peticiones. Si alguna falla, saltará al catch y veremos el error.
         const [meData, rulesData, destsData] = await Promise.all([
           this.api('/api/me'),
           this.api('/api/rules'),
@@ -81,21 +80,27 @@ document.addEventListener('alpine:init', () => {
         this.rules = rulesData?.result || [];
         this.dests = destsData?.result || [];
         
-        // Auto-seleccionar primer destino si no hay uno
         if (!this.newAlias.dest && this.verifiedDests.length > 0) {
           this.newAlias.dest = this.verifiedDests[0].email;
         }
       } catch (err) {
         console.error('Error cargando datos:', err);
-        // MOSTRAR ERROR EN LA UI para depuración
         this.setStatus(`Error de carga: ${err.message}`);
-        
-        // Evitar que la UI se rompa completamente dejando arrays vacíos
         this.profile = this.profile || { rootDomain: '' };
         this.rules = this.rules || [];
         this.dests = this.dests || [];
       } finally {
         this.loading = false;
+      }
+    },
+
+    async logout() {
+      try {
+        await this.api('/api/logout', 'POST');
+        window.location.href = '/login.html';
+      } catch (err) {
+        console.error(err);
+        window.location.href = '/login.html'; // Redirigir de todos modos
       }
     },
 
@@ -124,7 +129,7 @@ document.addEventListener('alpine:init', () => {
       this.loading = true;
       try {
         await this.api('/api/addresses', 'POST', { email: this.newDestInput });
-        this.setStatus('Añadido. Revisa tu correo.');
+        this.setStatus('Añadido. Revisa tu correo para verificar.');
         this.newDestInput = '';
         this.refreshAll();
       } catch (err) {
@@ -160,7 +165,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     async deleteDest(id) {
-      if (!confirm('¿Eliminar destinatario?')) return;
+      if (!confirm('¿Eliminar destinatario? Si hay reglas usándolo, dejarán de funcionar.')) return;
       try {
         await this.api(`/api/addresses/${id}`, 'DELETE');
         this.dests = this.dests.filter(d => d.id !== id);
@@ -179,18 +184,40 @@ document.addEventListener('alpine:init', () => {
       this.clearErrors();
     },
 
-    copyPreview() {
+    async copyPreview() {
       if (!this.profile.rootDomain) return;
-      navigator.clipboard.writeText(this.previewText).then(() => {
+      const text = this.previewText;
+      
+      try {
+        // La API Clipboard requiere contexto seguro (HTTPS o localhost)
+        await navigator.clipboard.writeText(text);
         this.copied = true;
         setTimeout(() => this.copied = false, 2000);
-      });
+      } catch (err) {
+        console.error('Error al copiar:', err);
+        // Fallback simple o alerta
+        this.setStatus('No se pudo copiar (¿Usas HTTPS?)');
+        // Intento de fallback para navegadores viejos/contextos inseguros
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            this.copied = true;
+            setTimeout(() => this.copied = false, 2000);
+            this.setStatus('');
+        } catch (e) {
+            prompt("Copia tu alias manualmente:", text);
+        }
+        document.body.removeChild(textArea);
+      }
     },
 
     setStatus(msg) {
       this.statusMsg = msg;
       if (this.statusTimer) clearTimeout(this.statusTimer);
-      this.statusTimer = setTimeout(() => this.statusMsg = '', 5000); // 5s para leer errores
+      this.statusTimer = setTimeout(() => this.statusMsg = '', 5000);
     },
 
     clearErrors() { this.errors.alias = ''; this.errors.dest = ''; },
