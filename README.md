@@ -78,14 +78,14 @@ CF_ZONE_ID=
 DOMAIN=
 
 # Acceso a Vuzon (Requerido)
-AUTH_USER=
-AUTH_PASS=
+AUTH_USER=admin
+AUTH_PASS=password
 
 # URL pública, útil si usas HTTPS para asegurar las cookies (Opcional) 
 # BASE_URL=https://vuzon.midominio.com
-# NODE_ENV=production
 
-# VUZON_PORT=8001
+# Puerto interno del contenedor (Por defecto 8001 si no se define)
+VUZON_PORT=8001
 ```
 
 ---
