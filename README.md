@@ -38,7 +38,7 @@
 
 
 <p align="center">
-  <img src="./assets/dashboard.png" alt="dashboard" width="auto" height="auto">
+  <img src="./assets/dashboard.png" alt="dashboard.png" width="auto" height="auto">
 </p>
 
 # vuzon
